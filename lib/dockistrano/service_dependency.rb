@@ -29,7 +29,7 @@ module Dockistrano
           "backing_service_env" =>  config
         })
 
-        backing_service.tag = tag_with_fallback(service.tag)
+        backing_service.tag = tag_with_fallback(service.registry, name, service.tag)
 
         begin
           loaded_config = load_config
@@ -89,10 +89,10 @@ module Dockistrano
     class NoTagFoundForImage < StandardError
     end
 
-    def tag_with_fallback(tag)
+    def tag_with_fallback(registry, image_name, tag)
       fallback_tags = [tag, "develop", "master", "latest"]
 
-      available_tags = Docker.tags_for_image("#{backing_service.registry}/#{backing_service.image_name}")
+      available_tags = Docker.tags_for_image("#{registry}/#{image_name}")
 
       begin
         tag_suggestion = fallback_tags.shift
@@ -102,7 +102,7 @@ module Dockistrano
       if final_tag
         final_tag
       else
-        raise NoTagFoundForImage.new("No tag found for image #{backing_service.image_name}, locally available tags: #{available_tags} `doc pull` for more tags from repository.")
+        raise NoTagFoundForImage.new("No tag found for image #{image_name}, locally available tags: #{available_tags} `doc pull` for more tags from repository.")
       end
     end
 

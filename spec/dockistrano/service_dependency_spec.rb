@@ -37,7 +37,7 @@ describe Dockistrano::ServiceDependency do
     end
 
     it "sets the tag with a fallback" do
-      expect(subject).to receive(:tag_with_fallback).with("develop").and_return("latest")
+      expect(subject).to receive(:tag_with_fallback).with("my.registry.net", "postgresql", "develop").and_return("latest")
       expect(subject.backing_service.tag).to eq("latest")
     end
 
@@ -119,35 +119,29 @@ describe Dockistrano::ServiceDependency do
   end
 
   context "#tag_with_fallback" do
-    let(:backing_service) { double(registry: "registry", image_name: "postgresql") }
-
-    before do
-      allow(subject).to receive(:backing_service).and_return(backing_service)
-    end
-
     it "returns the given tag when the tag is available" do
       expect(Dockistrano::Docker).to receive(:tags_for_image).and_return(["feature-branch", "develop", "master", "latest"])
-      expect(subject.tag_with_fallback("feature-branch")).to eq("feature-branch")
+      expect(subject.tag_with_fallback("registry", "postgresql", "feature-branch")).to eq("feature-branch")
     end
 
     it "returns develop when the specific tag is not available" do
       expect(Dockistrano::Docker).to receive(:tags_for_image).and_return(["develop", "master", "latest"])
-      expect(subject.tag_with_fallback("feature-branch")).to eq("develop")
+      expect(subject.tag_with_fallback("registry", "postgresql", "feature-branch")).to eq("develop")
     end
 
     it "returns master when develop is not available" do
       expect(Dockistrano::Docker).to receive(:tags_for_image).and_return(["master", "latest"])
-      expect(subject.tag_with_fallback("feature-branch")).to eq("master")
+      expect(subject.tag_with_fallback("registry", "postgresql", "feature-branch")).to eq("master")
     end
 
     it "returns latest when master is not available" do
       expect(Dockistrano::Docker).to receive(:tags_for_image).and_return(["latest"])
-      expect(subject.tag_with_fallback("feature-branch")).to eq("latest")
+      expect(subject.tag_with_fallback("registry", "postgresql", "feature-branch")).to eq("latest")
     end
 
     it "raises an error when not appropriate tag is found" do
       expect(Dockistrano::Docker).to receive(:tags_for_image).and_return(["another-feature-branch"])
-      expect { subject.tag_with_fallback("feature-branch") }.to raise_error(Dockistrano::ServiceDependency::NoTagFoundForImage)
+      expect { subject.tag_with_fallback("registry", "postgresql", "feature-branch") }.to raise_error(Dockistrano::ServiceDependency::NoTagFoundForImage)
     end
   end
 
