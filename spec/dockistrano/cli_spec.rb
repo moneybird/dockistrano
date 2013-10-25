@@ -24,7 +24,6 @@ describe Dockistrano::Cli do
 
     it "prints the DOCKER_BINARY" do
       expect(output).to include("DOCKER_BINARY:")
-      expect(output).to include("bin/docker")
     end
 
     it "prints the registry" do
