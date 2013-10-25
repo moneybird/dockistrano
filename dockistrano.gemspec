@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.version       = Dockistrano::VERSION
   spec.authors       = ["Edwin Vlieg"]
   spec.email         = ["edwin@moneybird.com"]
-  spec.summary       = %q{Development and deployment with Docker}
+  spec.summary       = %q{Manage Docker containers for a development workflow}
   spec.homepage      = "http://github.com/moneybird/dockistrano"
   spec.license       = "MIT"
 
