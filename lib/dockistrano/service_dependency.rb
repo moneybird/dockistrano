@@ -6,7 +6,7 @@ module Dockistrano
     # configuration is not local, the configuration is fetched from Github and
     # processed.
     def self.factory(service, name, config)
-      ServiceDependency.new(service, name, config).backing_service
+      ServiceDependency.new(service, name, config).initialized_backing_service
     end
 
     class DefaultEnvironmentMissingInConfiguration < StandardError
@@ -21,32 +21,32 @@ module Dockistrano
     end
 
     def backing_service
-      @backing_service ||= begin
-        backing_service = Service.new("default" => {
-          "registry"    => service.registry,
-          "image_name"  => name,
-          "tag"         => service.tag,
-          "backing_service_env" =>  config
-        })
+      @backing_service ||= Service.new("default" => {
+        "registry"    => service.registry,
+        "image_name"  => name,
+        "tag"         => service.tag,
+        "backing_service_env" =>  config
+      })
+    end
 
-        backing_service.tag = tag_with_fallback(service.registry, name, service.tag)
+    def initialized_backing_service
+      backing_service.tag = tag_with_fallback(service.tag)
 
-        begin
-          loaded_config = load_config
-          if loaded_config and loaded_config["default"]
-            backing_service.config = loaded_config["default"]
-          else
-            raise DefaultEnvironmentMissingInConfiguration.new("No 'default' configuration found in /dockistrano.yml file in #{name} container.")
-          end
-        rescue ContainerConfigurationMissing
-          puts "Warning: no configuration file found for service #{name}."
-        rescue HostDirectoriesMissing
-          puts "Error: missing host directory configuration for #{name}. Please execute `doc setup`"
-          exit 1
+      begin
+        loaded_config = load_config
+        if loaded_config and loaded_config["default"]
+          backing_service.config = loaded_config["default"]
+        else
+          raise DefaultEnvironmentMissingInConfiguration.new("No 'default' configuration found in /dockistrano.yml file in #{name} container.")
         end
-
-        backing_service
+      rescue ContainerConfigurationMissing
+        puts "Warning: no configuration file found for service #{name}."
+      rescue HostDirectoriesMissing
+        puts "Error: missing host directory configuration for #{name}. Please execute `doc setup`"
+        exit 1
       end
+
+      backing_service
     end
 
     def load_config
@@ -89,10 +89,10 @@ module Dockistrano
     class NoTagFoundForImage < StandardError
     end
 
-    def tag_with_fallback(registry, image_name, tag)
+    def tag_with_fallback(tag)
       fallback_tags = [tag, "develop", "master", "latest"]
 
-      available_tags = Docker.tags_for_image("#{registry}/#{image_name}")
+      available_tags = Docker.tags_for_image("#{backing_service.registry}/#{backing_service.image_name}")
 
       begin
         tag_suggestion = fallback_tags.shift
@@ -102,7 +102,7 @@ module Dockistrano
       if final_tag
         final_tag
       else
-        raise NoTagFoundForImage.new("No tag found for image #{image_name}, locally available tags: #{available_tags} `doc pull` for more tags from repository.")
+        raise NoTagFoundForImage.new("No tag found for image #{backing_service.image_name}, locally available tags: #{available_tags} `doc pull` for more tags from repository.")
       end
     end
 
