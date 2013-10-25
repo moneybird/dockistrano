@@ -1,6 +1,8 @@
 require 'rspec'
 require 'dockistrano'
 require 'webmock/rspec'
+require 'coveralls'
+Coveralls.wear!
 
 RSpec.configure do
 
