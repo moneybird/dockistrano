@@ -2,10 +2,9 @@
 
 $: << File.expand_path("../../lib/", __FILE__)
 
-require "bundler"
-Bundler.setup(:default)
-
+require "thor"
 require "dockistrano"
+
 begin
   Dockistrano::Cli.start
 rescue Thor::InvocationError => e
