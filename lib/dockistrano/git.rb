@@ -7,8 +7,8 @@ module Dockistrano
 
       if git_url =~ /^[A-z0-9]+@[A-z0-9.:\-]+\/([A-z0-9\-_\.]+)(\.git)?$/
         $1.gsub(/\.git$/, "")
-      elsif git_url =~ /^https?:\/\/[a-z\-\.]+\/[a-z\-\.]+\/([A-z0-9.\-\_]+)$/
-        $1
+      elsif git_url =~ /^(git|https?):\/\/[a-z\-\.]+\/[a-z\-\.]+\/([A-z0-9.\-\_]+)$/
+        $2.gsub(/\.git$/, "")
       else
         raise "Unknown git url '#{git_url}'"
       end
