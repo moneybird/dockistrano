@@ -2,6 +2,8 @@
 
 Dockistrano uses docker to create a development and testing environment for applications. It is inspired by Capistrano, because booting a container should be as easy as doing a `cap deploy`. The approach has a lot of conventions and as little as configuration as possible.
 
+Don't forget to have a look at [the wiki](https://github.com/moneybird/dockistrano/wiki) for more information.
+
 ## Current status
 
 Dockistrano is actively used for software development at [MoneyBird](http://www.moneybird.com), but is still very immature. Feel free to play around and provide us feedback. A pull request with tested code is the best way to help us improve the software!
