@@ -20,7 +20,9 @@ Or install it yourself as:
 
 To use Dockistrano for your application, two files should be created:
 
-1. A `Dockerfile` in the root of your project. The `Dockerfile` describes the container that is created for the application and should contain all dependencies. Example:
+### `Dockerfile`
+
+The `Dockerfile` describes the container that is created for the application and should contain all dependencies. Example:
 
 ```
 FROM ubuntu
@@ -33,7 +35,9 @@ CMD ["webserver", "start"]
 
 For more information about writing Dockerfiles, see [the documentation on docker.io](http://docs.docker.io/en/latest/use/builder/).
 
-2. A `config/dockistrano.yml` configuration file containing information about the registry and dependencies:
+### `config/dockistrano.yml`
+
+The configuration file contains information about the registry, dependencies, ports and environment variables.
 
 ```
 ---
