@@ -1,4 +1,4 @@
-# Dockistrano
+# Dockistrano [![Build Status](https://travis-ci.org/moneybird/dockistrano.png?branch=master)](https://travis-ci.org/moneybird/dockistrano) [![Coverage Status](https://coveralls.io/repos/moneybird/dockistrano/badge.png)](https://coveralls.io/r/moneybird/dockistrano) [![Code Climate](https://codeclimate.com/github/moneybird/dockistrano.png)](https://codeclimate.com/github/moneybird/dockistrano)
 
 Dockistrano uses docker to create a development and testing environment for applications. It is inspired by Capistrano, because booting a container should be as easy as doing a `cap deploy`. The approach has a lot of conventions and as little as configuration as possible.
 
