@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+$: << File.expand_path("../../lib/", __FILE__)
+
+require "bundler"
+Bundler.setup(:default)
+
+require "dockistrano"
+begin
+  Dockistrano::Cli.start
+rescue Thor::InvocationError => e
+  puts e
+end

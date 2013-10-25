@@ -1,0 +1,21 @@
+require 'rspec'
+require 'dockistrano'
+require 'webmock/rspec'
+
+RSpec.configure do
+
+  # Capture method from Thor's own spec_helper
+  def capture(stream)
+    begin
+      stream = stream.to_s
+      eval "$#{stream} = StringIO.new"
+      yield
+      result = eval("$#{stream}").string
+    ensure
+      eval("$#{stream} = #{stream.upcase}")
+    end
+
+    result
+  end
+
+end

@@ -1,0 +1,8 @@
+---
+default:
+  registry: my.registry.com:5000
+  image_name: project_1
+  dependencies:
+    redis: git@github.com:username/redis.git
+    memcached: git@github.com:username/memcached.git
+
