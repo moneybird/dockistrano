@@ -294,32 +294,35 @@ describe Dockistrano::Service do
 
   context "#run" do
     it "runs the command inside the container" do
+      allow(subject).to receive(:full_image_name_with_fallback).and_return("image:develop")
       allow(subject).to receive(:environment_variables).and_return(environment = double)
       allow(subject).to receive(:volumes).and_return(volumes = double)
       allow(subject).to receive(:ports).and_return(ports = double)
-      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name, e: environment, v: volumes, p: ports, command: "foobar")
+      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name_with_fallback, e: environment, v: volumes, p: ports, command: "foobar")
       subject.run("foobar")
     end
   end
 
   context "#exec" do
     it "executes the command inside the container" do
+      allow(subject).to receive(:full_image_name_with_fallback).and_return("image:develop")
       allow(subject).to receive(:environment_variables).and_return(environment = double)
       allow(subject).to receive(:volumes).and_return(volumes = double)
       allow(subject).to receive(:ports).and_return(ports = double)
       expect(subject).to receive(:create_data_directories)
-      expect(Dockistrano::Docker).to receive(:exec).with(subject.full_image_name, e: environment, v: volumes, p: ports, command: "foobar")
+      expect(Dockistrano::Docker).to receive(:exec).with(subject.full_image_name_with_fallback, e: environment, v: volumes, p: ports, command: "foobar")
       subject.exec("foobar")
     end
   end
 
   context "#console" do
     it "runs the command inside the container" do
+      allow(subject).to receive(:full_image_name_with_fallback).and_return("image:develop")
       allow(subject).to receive(:environment_variables).and_return(environment = double)
       allow(subject).to receive(:volumes).and_return(volumes = double)
       allow(subject).to receive(:ports).and_return(ports = double)
       expect(subject).to receive(:create_data_directories)
-      expect(Dockistrano::Docker).to receive(:console).with(subject.full_image_name, e: environment, v: volumes, p: ports, command: "foobar")
+      expect(Dockistrano::Docker).to receive(:console).with(subject.full_image_name_with_fallback, e: environment, v: volumes, p: ports, command: "foobar")
       subject.console("foobar")
     end
   end
@@ -348,7 +351,7 @@ describe Dockistrano::Service do
         ip_address: "172.0.0.1",
         port: "1245",
         backing_service_env: { database: "dockistrano_development" },
-        environment_variables: { "DATABASE_URL" => "postgres://postgres@$POSTGRESQL_IP/$POSTGRESQL_DATABASE"}
+        provided_environment_variables: { "DATABASE_URL" => "postgres://postgres@$POSTGRESQL_IP/$POSTGRESQL_DATABASE"}
       )
     }
 
@@ -373,18 +376,22 @@ describe Dockistrano::Service do
     end
 
     it "includes environment variables from each backing service" do
-      expect(backing_service).to receive(:environment_variables).and_return({ "SUB_ENV" => "some_value" })
+      expect(backing_service).to receive(:provided_environment_variables).and_return({ "SUB_ENV" => "some_value" })
       expect(subject.environment_variables["SUB_ENV"]).to eq("some_value")
-    end
-
-    it "includes environment variables that are provided by the service" do
-      expect(subject).to receive(:provides_env).and_return({ "BUNDLE_PATH" => "/bundle" })
-      expect(subject.environment_variables["BUNDLE_PATH"]).to eq("/bundle")
     end
 
     it "interpolates environment variables with present values" do
       expect(subject.environment_variables["DATABASE_URL"]).to eq("postgres://postgres@172.0.0.1/dockistrano_development")
     end
+  end
+
+  context "#provided_environment_variables" do
+
+    it "includes environment variables that are provided by the service" do
+      expect(subject).to receive(:provides_env).and_return({ "BUNDLE_PATH" => "/bundle" })
+      expect(subject.provided_environment_variables["BUNDLE_PATH"]).to eq("/bundle")
+    end
+
   end
 
   context "#volumes" do
@@ -497,12 +504,13 @@ describe Dockistrano::Service do
 
   context "#create_data_directories" do
     it "creates directories in the mounted data folder" do
+      allow(subject).to receive(:full_image_name_with_fallback).and_return("image:develop")
       allow(subject).to receive(:data_directories).and_return(["logs"])
       allow(subject).to receive(:volumes).and_return(volumes = double)
       allow(subject).to receive(:environment_variables).and_return(environment_variables = double)
-      allow(Dockistrano::Docker).to receive(:inspect_image).with(subject.full_image_name).and_return({ "container_config" => { "User" => "app" }})
+      allow(Dockistrano::Docker).to receive(:inspect_image).with(subject.full_image_name_with_fallback).and_return({ "container_config" => { "User" => "app" }})
 
-      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name,
+      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name_with_fallback,
         v: volumes,
         e: environment_variables,
         u: "root",

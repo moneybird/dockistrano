@@ -77,6 +77,10 @@ module Dockistrano
       "#{registry}/#{image_name}:#{tag}"
     end
 
+    def full_image_name_with_fallback
+      "#{registry}/#{image_name}:#{tag_with_fallback}"
+    end
+
     # Builds a new image for this service
     def build
       previous_image_id = image_id
@@ -175,19 +179,19 @@ module Dockistrano
 
     # Runs a command in this container
     def run(command, options={})
-      Docker.run(full_image_name, command: command, e: environment_variables, v: volumes, p: ports)
+      Docker.run(full_image_name_with_fallback, command: command, e: environment_variables, v: volumes, p: ports)
     end
 
     # Executes a command in this container
     def exec(command, options={})
       create_data_directories
-      Docker.exec(full_image_name, command: command, e: environment_variables, v: volumes, p: ports)
+      Docker.exec(full_image_name_with_fallback, command: command, e: environment_variables, v: volumes, p: ports)
     end
 
     # Starts a console in the docker container
     def console(command, options={})
       create_data_directories
-      Docker.console(full_image_name, command: command, e: environment_variables, v: volumes, p: ports)
+      Docker.console(full_image_name_with_fallback, command: command, e: environment_variables, v: volumes, p: ports)
     end
 
     # Lists all backing services for this service
@@ -217,10 +221,9 @@ module Dockistrano
           vars["#{name.upcase}_#{k.upcase}"] = v
         end
 
-        vars.merge!(backing_service.environment_variables)
+        vars.merge!(backing_service.provided_environment_variables)
       end
 
-      vars.merge!(provides_env)
       vars.each do |key, value|
         vars.each do |replacement_key, replacement_value|
           unless vars[key].nil? or replacement_value.nil?
@@ -230,6 +233,10 @@ module Dockistrano
       end
 
       vars
+    end
+
+    def provided_environment_variables
+      provides_env
     end
 
     # Returns the mounted volumes for this service
@@ -296,13 +303,13 @@ module Dockistrano
 
     def create_data_directories
       if data_directories.any?
-        image_config = Docker.inspect_image(full_image_name)
+        image_config = Docker.inspect_image(full_image_name_with_fallback)
         image_user = image_config["container_config"]["User"]
 
         command = "mkdir -p #{data_directories.collect { |dir| "/dockistrano/data/#{dir}"}.join(" ") }; "
         command += "chown #{image_user}:#{image_user} #{data_directories.collect { |dir| "/dockistrano/data/#{dir}"}.join(" ") }"
         bash_command = "/bin/bash -c '#{command}'"
-        Docker.run(full_image_name, command: bash_command, v: volumes, e: environment_variables, u: "root")
+        Docker.run(full_image_name_with_fallback, command: bash_command, v: volumes, e: environment_variables, u: "root")
       end
     end
 
