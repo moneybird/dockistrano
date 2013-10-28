@@ -81,7 +81,7 @@ module Dockistrano
 
     desc "pull", "Pull new versions of dependencies"
     def pull
-      current_service.backing_services.each do |name, service|
+      current_service.backing_services(initialize: false).each do |name, service|
         if service.newer_version_available?
           service.pull
           say_status "Pulled", name

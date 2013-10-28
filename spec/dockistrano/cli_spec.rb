@@ -85,24 +85,28 @@ describe Dockistrano::Cli do
     let(:command) { ["pull"] }
 
     it "pulls a backing service when newer versions are available" do
+      expect(service).to receive(:backing_services).with(initialize: false).and_return({ "postgresql" => backing_service })
       expect(backing_service).to receive(:newer_version_available?).and_return(true)
       expect(backing_service).to receive(:pull)
       expect(output).to include("Pulled")
     end
 
     it "doesn't pull a service when no new versions are available" do
+      expect(service).to receive(:backing_services).with(initialize: false).and_return({ "postgresql" => backing_service })
       expect(backing_service).to receive(:newer_version_available?).and_return(false)
       expect(backing_service).to_not receive(:pull)
       expect(output).to include("Uptodate")
     end
 
     it "pulls the application container when newer versions are available" do
+      expect(service).to receive(:backing_services).with(initialize: false).and_return({ "postgresql" => backing_service })
       expect(service).to receive(:newer_version_available?).and_return(true)
       expect(service).to receive(:pull)
       expect(output).to include("Pulled")
     end
 
     it "doesn't pull the application container when no newer versions are available" do
+      expect(service).to receive(:backing_services).with(initialize: false).and_return({ "postgresql" => backing_service })
       expect(service).to receive(:newer_version_available?).and_return(false)
       expect(service).to_not receive(:pull)
       expect(output).to include("Uptodate")

@@ -12,6 +12,12 @@ describe Dockistrano::ServiceDependency do
       expect(service_dependency).to receive(:initialized_backing_service).and_return(service)
       expect(described_class.factory(service, "redis", { foo: "bar" })).to eq(service)
     end
+
+    it "creates a new service based on the name" do
+      expect(described_class).to receive(:new).and_return(service_dependency)
+      expect(service_dependency).to receive(:backing_service).and_return(service)
+      expect(described_class.factory(service, "redis", { foo: "bar" }, false)).to eq(service)
+    end
   end
 
   context "#backing_service" do

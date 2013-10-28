@@ -191,10 +191,12 @@ module Dockistrano
     end
 
     # Lists all backing services for this service
-    def backing_services
+    def backing_services(options={})
+      initialize = options.delete(:initialize)
+      initialize = true if initialize.nil?
       @backing_services ||= {}.tap do |hash|
         dependencies.collect do |name, config|
-          hash[name] = ServiceDependency.factory(self, name, config)
+          hash[name] = ServiceDependency.factory(self, name, config, initialize)
         end
       end
     end

@@ -332,8 +332,13 @@ describe Dockistrano::Service do
     end
 
     it "returns a hash with backing services" do
-      expect(Dockistrano::ServiceDependency).to receive(:factory).with(subject, "postgresql", {}).and_return(service)
+      expect(Dockistrano::ServiceDependency).to receive(:factory).with(subject, "postgresql", {}, true).and_return(service)
       expect(subject.backing_services).to eq({ "postgresql" => service })
+    end
+
+    it "returns a hash with uninitialized backing services" do
+      expect(Dockistrano::ServiceDependency).to receive(:factory).with(subject, "postgresql", {}, false).and_return(service)
+      expect(subject.backing_services(initialize: false)).to eq({ "postgresql" => service })
     end
   end
 

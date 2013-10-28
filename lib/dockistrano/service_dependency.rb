@@ -5,8 +5,15 @@ module Dockistrano
     # Creates a new service instance based on the name and configuration. When
     # configuration is not local, the configuration is fetched from Github and
     # processed.
-    def self.factory(service, name, config)
-      ServiceDependency.new(service, name, config).initialized_backing_service
+    # In some cases, you only need an uninitialized version of a dependency, for
+    # example when pulling new versions of images. Provide initialize=false to
+    # skip tag detection and configuration loading from the image.
+    def self.factory(service, name, config, initialize=true)
+      if initialize
+        ServiceDependency.new(service, name, config).initialized_backing_service
+      else
+        ServiceDependency.new(service, name, config).backing_service
+      end
     end
 
     class DefaultEnvironmentMissingInConfiguration < StandardError
