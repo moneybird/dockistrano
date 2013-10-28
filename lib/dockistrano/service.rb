@@ -249,7 +249,7 @@ module Dockistrano
     # Returns a list of available tags in the registry for the image
     def available_tags
       @available_tags ||= begin
-        registry_instance.tags_for_image(full_image_name)
+        registry_instance.tags_for_image(image_name)
       rescue Dockistrano::Registry::RepositoryNotFoundInRegistry
         []
       end
@@ -270,7 +270,7 @@ module Dockistrano
       if final_tag
         final_tag
       else
-        raise NoTagFoundForImage.new("No tag found for image #{image_name}, available tags: #{available_tags}")
+        raise NoTagFoundForImage.new("No tag found for image #{image_name}, wanted tag #{tag}, available tags: #{available_tags}")
       end
     end
 
@@ -307,7 +307,7 @@ module Dockistrano
     end
 
     def newer_version_available?
-      registry_image_id = registry_instance.latest_id_for_image(image_name, tag)
+      registry_image_id = registry_instance.latest_id_for_image(image_name, tag_with_fallback)
       registry_image_id and image_id != registry_image_id
     end
 

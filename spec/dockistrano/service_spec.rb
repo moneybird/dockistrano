@@ -403,13 +403,13 @@ describe Dockistrano::Service do
   context "#available_tags" do
     it "returns a list of available tags for the current service" do
       expect(subject).to receive(:registry_instance).and_return(registry = double)
-      expect(registry).to receive(:tags_for_image).with(subject.full_image_name).and_return(["develop", "master"])
+      expect(registry).to receive(:tags_for_image).with(subject.image_name).and_return(["develop", "master"])
       expect(subject.available_tags).to eq(["develop", "master"])
     end
 
     it "returns an empty list when the repository is not found in the registry" do
       expect(subject).to receive(:registry_instance).and_return(registry = double)
-      expect(registry).to receive(:tags_for_image).with(subject.full_image_name).and_raise(Dockistrano::Registry::RepositoryNotFoundInRegistry)
+      expect(registry).to receive(:tags_for_image).with(subject.image_name).and_raise(Dockistrano::Registry::RepositoryNotFoundInRegistry)
       expect(subject.available_tags).to eq([])
     end
   end
@@ -518,22 +518,23 @@ describe Dockistrano::Service do
 
     before do
       allow(subject).to receive(:registry_instance).and_return(registry_instance)
+      allow(subject).to receive(:tag_with_fallback).and_return("develop")
     end
 
     it "returns true when a newer version of the image is available" do
       expect(subject).to receive(:image_id).and_return("1")
-      expect(registry_instance).to receive(:latest_id_for_image).with(subject.image_name, subject.tag).and_return("2")
+      expect(registry_instance).to receive(:latest_id_for_image).with(subject.image_name, subject.tag_with_fallback).and_return("2")
       expect(subject.newer_version_available?).to be_true
     end
 
     it "returns false when no registry image id is found" do
-      expect(registry_instance).to receive(:latest_id_for_image).with(subject.image_name, subject.tag).and_return(nil)
+      expect(registry_instance).to receive(:latest_id_for_image).with(subject.image_name, subject.tag_with_fallback).and_return(nil)
       expect(subject.newer_version_available?).to be_false
     end
 
     it "returns false when the registry image id is equal to the local id" do
       expect(subject).to receive(:image_id).and_return("1")
-      expect(registry_instance).to receive(:latest_id_for_image).with(subject.image_name, subject.tag).and_return("1")
+      expect(registry_instance).to receive(:latest_id_for_image).with(subject.image_name, subject.tag_with_fallback).and_return("1")
       expect(subject.newer_version_available?).to be_false
     end
   end
