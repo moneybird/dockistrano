@@ -163,7 +163,7 @@ module Dockistrano
         end
       end
 
-      Docker.run(full_image_name, e: environment, v: volumes, p: ports, d: true)
+      Docker.run(full_image_name, name: image_name, e: environment, v: volumes, p: ports, d: true)
 
       if !host.nil?
         hipache = Hipache.new(ENV['DOCKER_HOST_IP'])

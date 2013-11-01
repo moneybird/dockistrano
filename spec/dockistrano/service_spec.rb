@@ -272,7 +272,7 @@ describe Dockistrano::Service do
     end
 
     it "starts the container with the default command, providing env variables and volumes" do
-      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name, e: environment, v: volumes, p: ports, d: true)
+      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name, name: subject.image_name, e: environment, v: volumes, p: ports, d: true)
       subject.start
     end
 
