@@ -244,6 +244,7 @@ describe Dockistrano::Service do
     let(:volumes) { double }
     let(:ports) { double }
     let(:hipache) { double }
+    let(:links) { double }
 
     before do
       allow(Dockistrano::Hipache).to receive(:new).and_return(hipache)
@@ -252,6 +253,7 @@ describe Dockistrano::Service do
       allow(subject).to receive(:checked_environment_variables).and_return(environment)
       allow(subject).to receive(:volumes).and_return(volumes)
       allow(subject).to receive(:ports).and_return(ports)
+      allow(subject).to receive(:link_backing_services).and_return(links)
       allow(Dockistrano::Docker).to receive(:run)
     end
 
@@ -267,12 +269,12 @@ describe Dockistrano::Service do
 
     it "starts additional container when additional commands are configured" do
       allow(subject).to receive(:additional_commands).and_return({ "worker" => "sidekiq start" })
-      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name, e: environment, v: volumes, p: ports, d: true, command: "sidekiq start")
+      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name, link: links, e: environment, v: volumes, p: ports, d: true, command: "sidekiq start")
       subject.start
     end
 
     it "starts the container with the default command, providing env variables and volumes" do
-      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name, name: subject.image_name, e: environment, v: volumes, p: ports, d: true)
+      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name, name: subject.image_name, link: links, e: environment, v: volumes, p: ports, d: true)
       subject.start
     end
 
@@ -298,7 +300,8 @@ describe Dockistrano::Service do
       allow(subject).to receive(:environment_variables).and_return(environment = double)
       allow(subject).to receive(:volumes).and_return(volumes = double)
       allow(subject).to receive(:ports).and_return(ports = double)
-      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name_with_fallback, e: environment, v: volumes, p: ports, command: "foobar")
+      allow(subject).to receive(:link_backing_services).and_return(link = double)
+      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name_with_fallback, link: link, e: environment, v: volumes, p: ports, command: "foobar")
       subject.run("foobar")
     end
   end
@@ -309,8 +312,9 @@ describe Dockistrano::Service do
       allow(subject).to receive(:environment_variables).and_return(environment = double)
       allow(subject).to receive(:volumes).and_return(volumes = double)
       allow(subject).to receive(:ports).and_return(ports = double)
+      allow(subject).to receive(:link_backing_services).and_return(link = double)
       expect(subject).to receive(:create_data_directories)
-      expect(Dockistrano::Docker).to receive(:exec).with(subject.full_image_name_with_fallback, e: environment, v: volumes, p: ports, command: "foobar")
+      expect(Dockistrano::Docker).to receive(:exec).with(subject.full_image_name_with_fallback, link: link, e: environment, v: volumes, p: ports, command: "foobar")
       subject.exec("foobar")
     end
   end
@@ -321,8 +325,9 @@ describe Dockistrano::Service do
       allow(subject).to receive(:environment_variables).and_return(environment = double)
       allow(subject).to receive(:volumes).and_return(volumes = double)
       allow(subject).to receive(:ports).and_return(ports = double)
+      allow(subject).to receive(:link_backing_services).and_return(link = double)
       expect(subject).to receive(:create_data_directories)
-      expect(Dockistrano::Docker).to receive(:console).with(subject.full_image_name_with_fallback, e: environment, v: volumes, p: ports, command: "foobar")
+      expect(Dockistrano::Docker).to receive(:console).with(subject.full_image_name_with_fallback, link: link, e: environment, v: volumes, p: ports, command: "foobar")
       subject.console("foobar")
     end
   end
@@ -345,6 +350,16 @@ describe Dockistrano::Service do
     end
   end
 
+  context "#link_backing_services" do
+    it "returns an array with image names of backing services" do
+      allow(subject).to receive(:backing_services).and_return({
+        "postgresql" => double(image_name: "postgresql"),
+        "redis" => double(image_name: "redis")
+      })
+      expect(subject.link_backing_services).to eq(["postgresql:postgresql", "redis:redis"])
+    end
+  end
+
   context "#environment_variables" do
     let(:backing_service){
       double(
@@ -363,11 +378,6 @@ describe Dockistrano::Service do
       subject.config = { "environment" => { "rails_env" => "test" } }
       expect(subject.environment_variables).to include("RAILS_ENV")
       expect(subject.environment_variables["RAILS_ENV"]).to eq("test")
-    end
-
-    it "includes environment variables with the ip and port of each backing service" do
-      expect(subject.environment_variables).to include("POSTGRESQL_IP")
-      expect(subject.environment_variables).to include("POSTGRESQL_PORT")
     end
 
     it "includes variables for the backing service provided in the local configuration" do

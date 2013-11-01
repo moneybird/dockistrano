@@ -159,11 +159,11 @@ module Dockistrano
 
       if additional_commands.any?
         additional_commands.each do |name, command|
-          Docker.run(full_image_name, e: environment, v: volumes, p: ports, d: true, command: command)
+          Docker.run(full_image_name, link: link_backing_services, e: environment, v: volumes, p: ports, d: true, command: command)
         end
       end
 
-      Docker.run(full_image_name, name: image_name, e: environment, v: volumes, p: ports, d: true)
+      Docker.run(full_image_name, name: image_name, link: link_backing_services, e: environment, v: volumes, p: ports, d: true)
 
       if !host.nil?
         hipache = Hipache.new(ENV['DOCKER_HOST_IP'])
@@ -179,19 +179,19 @@ module Dockistrano
 
     # Runs a command in this container
     def run(command, options={})
-      Docker.run(full_image_name_with_fallback, command: command, e: environment_variables, v: volumes, p: ports)
+      Docker.run(full_image_name_with_fallback, link: link_backing_services, command: command, e: environment_variables, v: volumes, p: ports)
     end
 
     # Executes a command in this container
     def exec(command, options={})
       create_data_directories
-      Docker.exec(full_image_name_with_fallback, command: command, e: environment_variables, v: volumes, p: ports)
+      Docker.exec(full_image_name_with_fallback, link: link_backing_services, command: command, e: environment_variables, v: volumes, p: ports)
     end
 
     # Starts a console in the docker container
     def console(command, options={})
       create_data_directories
-      Docker.console(full_image_name_with_fallback, command: command, e: environment_variables, v: volumes, p: ports)
+      Docker.console(full_image_name_with_fallback, link: link_backing_services, command: command, e: environment_variables, v: volumes, p: ports)
     end
 
     # Lists all backing services for this service
@@ -205,6 +205,13 @@ module Dockistrano
       end
     end
 
+    # Returns an array of backing services to link
+    def link_backing_services
+      backing_services.collect { |name, service|
+        "#{service.image_name}:#{service.image_name}"
+      }
+    end
+
     # Returns an array of environment variables
     def environment_variables
       vars = {}
@@ -214,8 +221,8 @@ module Dockistrano
       end
 
       backing_services.each do |name, backing_service|
-        vars["#{name.upcase}_IP"] = backing_service.ip_address
-        vars["#{name.upcase}_PORT"] = backing_service.port
+        # vars["#{name.upcase}_IP"] = backing_service.ip_address
+        # vars["#{name.upcase}_PORT"] = backing_service.port
 
         backing_service.backing_service_env.each do |k,v|
           vars["#{name.upcase}_#{k.upcase}"] = v
