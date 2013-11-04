@@ -158,11 +158,9 @@ describe Dockistrano::Service do
   end
 
   context "#stop" do
-    let(:hipache) { double }
-
     before do
       allow(Dockistrano::Docker).to receive(:stop_all_containers_from_image)
-      allow(Dockistrano::Hipache).to receive(:new).and_return(hipache)
+      allow(subject).to receive(:update_hipache)
     end
 
     it "stops the container" do
@@ -170,18 +168,8 @@ describe Dockistrano::Service do
       subject.stop
     end
 
-    it "unregisters a host from Hipache" do
-      allow(subject).to receive(:host).and_return("hostname.dev")
-      expect(subject).to receive(:ip_address).and_return("33.33.33.33")
-      expect(subject).to receive(:port).and_return("3000")
-      expect(hipache).to receive(:unregister).with(subject.image_name, "hostname.dev", "33.33.33.33", "3000")
-      subject.stop
-    end
-
-    it "unregisters multiple hosts from Hipache" do
-      allow(subject).to receive(:host).and_return({ "hostname.dev" => "8000" })
-      expect(subject).to receive(:ip_address).and_return("33.33.33.33")
-      expect(hipache).to receive(:unregister).with(subject.image_name, "hostname.dev", "33.33.33.33", "8000")
+    it "updates Hipache" do
+      expect(subject).to receive(:update_hipache).with(false)
       subject.stop
     end
   end
@@ -239,15 +227,36 @@ describe Dockistrano::Service do
     end
   end
 
+  context "#update_hipache" do
+    let(:hipache) { double }
+
+    before do
+      allow(Dockistrano::Hipache).to receive(:new).and_return(hipache)
+    end
+
+    it "registers the host in Hipache when the server is up" do
+      allow(subject).to receive(:host).and_return({ "hostname.dev" => "8000" })
+      expect(subject).to receive(:ip_address_for_port).with("8000").and_return("33.33.33.33")
+      expect(hipache).to receive(:register).with(subject.image_name, "hostname.dev", "33.33.33.33", "8000")
+      subject.update_hipache(true)
+    end
+
+    it "unregisters the host in Hipache when the server is down" do
+      allow(subject).to receive(:host).and_return({ "hostname.dev" => "8000" })
+      expect(subject).to receive(:ip_address_for_port).with("8000").and_return("33.33.33.33")
+      expect(hipache).to receive(:unregister).with(subject.image_name, "hostname.dev", "33.33.33.33", "8000")
+      subject.update_hipache(false)
+    end
+  end
+
   context "#start" do
     let(:environment) { double }
     let(:volumes) { double }
     let(:ports) { double }
-    let(:hipache) { double }
     let(:links) { double }
 
     before do
-      allow(Dockistrano::Hipache).to receive(:new).and_return(hipache)
+      allow(subject).to receive(:update_hipache)
       allow(subject).to receive(:ensure_backing_services)
       allow(subject).to receive(:create_data_directories)
       allow(subject).to receive(:checked_environment_variables).and_return(environment)
@@ -278,18 +287,8 @@ describe Dockistrano::Service do
       subject.start
     end
 
-    it "registers a host with Hipache" do
-      allow(subject).to receive(:host).and_return("hostname.dev")
-      expect(subject).to receive(:ip_address).and_return("33.33.33.33")
-      expect(subject).to receive(:port).and_return("3000")
-      expect(hipache).to receive(:register).with(subject.image_name, "hostname.dev", "33.33.33.33", "3000")
-      subject.start
-    end
-
-    it "registers multiple hosts with Hipache" do
-      allow(subject).to receive(:host).and_return({ "hostname.dev" => "8000" })
-      expect(subject).to receive(:ip_address).and_return("33.33.33.33")
-      expect(hipache).to receive(:register).with(subject.image_name, "hostname.dev", "33.33.33.33", "8000")
+    it "updates Hipache" do
+      expect(subject).to receive(:update_hipache)
       subject.start
     end
   end
@@ -468,36 +467,25 @@ describe Dockistrano::Service do
     end
   end
 
-  context "#ip_address" do
-    it "returns the ip address of the running container" do
+  context "#ip_address_for_port" do
+    it "returns the ip address at which the port is listening" do
       allow(subject).to receive(:running?).and_return(true)
-      allow(subject).to receive(:container_settings).and_return({ "NetworkSettings" => { "IPAddress" => "33.33.33.10" }})
-      expect(subject.ip_address).to eq("33.33.33.10")
-    end
-
-    it "returns nil when the container is not running" do
-      allow(subject).to receive(:running?).and_return(false)
-      expect(subject.ip_address).to be_nil
-    end
-  end
-
-  context "#port" do
-    it "returns the ip address of the running container" do
-      allow(subject).to receive(:running?).and_return(true)
-      allow(subject).to receive(:container_settings).and_return({ "NetworkSettings" => { "PortMapping" => { "Tcp" => { "8000" => "80" } } } })
-      expect(subject.port).to eq("8000")
-    end
-
-    it "returns nil when the container is not running" do
-      allow(subject).to receive(:running?).and_return(false)
-      expect(subject.port).to be_nil
+      allow(subject).to receive(:container_settings).and_return({ "NetworkSettings" => { "Ports" => {
+        "3000/tcp" => [
+          {
+            "HostIp" => "127.0.0.1",
+            "HostPort" => "3000"
+          }
+        ]
+      }}})
+      expect(subject.ip_address_for_port(3000)).to eq("127.0.0.1")
     end
   end
 
   context "#ports" do
     it "returns a string representation of the port mappings" do
       subject.config = { "ports" => { "1234" => "5678" } }
-      expect(subject.ports).to eq(["1234:5678"])
+      expect(subject.ports).to eq(["127.0.0.1:1234:5678"])
     end
   end
 

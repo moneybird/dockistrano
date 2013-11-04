@@ -115,17 +115,7 @@ module Dockistrano
 
     # Stops the container of the current service
     def stop
-      if !host.nil?
-        hipache = Hipache.new(ENV['DOCKER_HOST_IP'])
-        if host.kind_of?(String)
-          hipache.unregister(image_name, host, ip_address, port)
-        else
-          host.each do |hostname, port|
-            hipache.unregister(image_name, hostname, ip_address, port)
-          end
-        end
-      end
-
+      update_hipache(false)
       Docker.stop_all_containers_from_image(full_image_name)
     end
 
@@ -151,6 +141,19 @@ module Dockistrano
       Dockistrano::Docker.push("#{registry}/#{image_name}", tag)
     end
 
+    def update_hipache(server_up=true)
+      if !host.nil?
+        hipache = Hipache.new(ENV['DOCKER_HOST_IP'])
+        host.each do |hostname, port|
+          if server_up
+            hipache.register(image_name, hostname, ip_address_for_port(port), port)
+          else
+            hipache.unregister(image_name, hostname, ip_address_for_port(port), port)
+          end
+        end
+      end
+    end
+
     # Starts this service
     def start(options={})
       ensure_backing_services
@@ -164,17 +167,7 @@ module Dockistrano
       end
 
       Docker.run(full_image_name, name: image_name, link: link_backing_services, e: environment, v: volumes, p: ports, d: true)
-
-      if !host.nil?
-        hipache = Hipache.new(ENV['DOCKER_HOST_IP'])
-        if host.kind_of?(String)
-          hipache.register(image_name, host, ip_address, port)
-        else
-          host.each do |hostname, port|
-            hipache.register(image_name, hostname, ip_address, port)
-          end
-        end
-      end
+      update_hipache(true)
     end
 
     # Runs a command in this container
@@ -221,9 +214,6 @@ module Dockistrano
       end
 
       backing_services.each do |name, backing_service|
-        # vars["#{name.upcase}_IP"] = backing_service.ip_address
-        # vars["#{name.upcase}_PORT"] = backing_service.port
-
         backing_service.backing_service_env.each do |k,v|
           vars["#{name.upcase}_#{k.upcase}"] = v
         end
@@ -290,16 +280,12 @@ module Dockistrano
       end
     end
 
-    def ip_address
-      container_settings["NetworkSettings"]["IPAddress"] if running?
-    end
-
-    def port
-      container_settings["NetworkSettings"]["PortMapping"]["Tcp"].keys.first if running?
+    def ip_address_for_port(port)
+      container_settings["NetworkSettings"]["Ports"]["#{port}/tcp"].first["HostIp"] if running?
     end
 
     def ports
-      (config["ports"] || {}).collect { |k,v| "#{k}:#{v}" }
+      (config["ports"] || {}).collect { |k,v| "127.0.0.1:#{k}:#{v}" }
     end
 
     def attach
