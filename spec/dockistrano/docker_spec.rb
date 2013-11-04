@@ -187,6 +187,13 @@ describe Dockistrano::Docker do
     end
   end
 
+  context ".remove_container" do
+    it "removes the container" do
+      expect(subject).to receive(:execute).with(["rm", "application"])
+      subject.remove_container("application")
+    end
+  end
+
   context ".inspect_container" do
     it "returns information about the container" do
       stub_request(:get, 'http://127.0.0.1:4243/containers/123456789/json').to_return({

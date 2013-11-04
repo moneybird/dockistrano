@@ -95,6 +95,10 @@ module Dockistrano
       execute(["attach", id], :stream)
     end
 
+    def self.remove_container(name)
+      execute(["rm", name])
+    end
+
     def self.clean
       Dockistrano::CommandLine.command_with_stream("#{docker_command} rmi $(#{docker_command} images -a | grep \"^<none>\" | awk '{print $3}')")
       Dockistrano::CommandLine.command_with_stream("#{docker_command} rm $(#{docker_command} ps -a -q)")

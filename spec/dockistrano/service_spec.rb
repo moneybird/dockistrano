@@ -160,11 +160,17 @@ describe Dockistrano::Service do
   context "#stop" do
     before do
       allow(Dockistrano::Docker).to receive(:stop_all_containers_from_image)
+      allow(Dockistrano::Docker).to receive(:remove_container)
       allow(subject).to receive(:update_hipache)
     end
 
     it "stops the container" do
       expect(Dockistrano::Docker).to receive(:stop_all_containers_from_image).with(subject.full_image_name)
+      subject.stop
+    end
+
+    it "removes the container from Docker" do
+      expect(Dockistrano::Docker).to receive(:remove_container).with(subject.image_name)
       subject.stop
     end
 

@@ -117,6 +117,7 @@ module Dockistrano
     def stop
       update_hipache(false)
       Docker.stop_all_containers_from_image(full_image_name)
+      Docker.remove_container(image_name)
     end
 
     # Returns if this service is running
