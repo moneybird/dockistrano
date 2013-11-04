@@ -366,7 +366,7 @@ describe Dockistrano::Service do
         ip_address: "172.0.0.1",
         port: "1245",
         backing_service_env: { database: "dockistrano_development" },
-        provided_environment_variables: { "DATABASE_URL" => "postgres://postgres@$POSTGRESQL_IP/$POSTGRESQL_DATABASE"}
+        provided_environment_variables: { "DATABASE_URL" => "postgres://postgres@172.0.0.1/$POSTGRESQL_DATABASE"}
       )
     }
 
