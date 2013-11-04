@@ -233,8 +233,10 @@ module Dockistrano
 
       vars.each do |key, value|
         vars.each do |replacement_key, replacement_value|
-          unless vars[key].nil? or replacement_value.nil?
-            vars[key] = vars[key].gsub('$'+replacement_key, replacement_value)
+          vars[key] = if vars[key].nil? or replacement_value.nil? or replacement_value.empty?
+            vars[key].gsub('$'+replacement_key, '$'+replacement_key)
+          else
+            vars[key].gsub('$'+replacement_key, replacement_value)
           end
         end
       end

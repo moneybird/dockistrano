@@ -393,6 +393,11 @@ describe Dockistrano::Service do
     it "interpolates environment variables with present values" do
       expect(subject.environment_variables["DATABASE_URL"]).to eq("postgres://postgres@172.0.0.1/dockistrano_development")
     end
+
+    it "leaves variables in tact that could not be replaced" do
+      subject.config = { "environment" => { "rails_env" => "test$FOOBAR" } }
+      expect(subject.environment_variables["RAILS_ENV"]).to eq("test$FOOBAR")
+    end
   end
 
   context "#provided_environment_variables" do
