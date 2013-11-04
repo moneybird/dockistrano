@@ -3,14 +3,7 @@ require "dotenv"
 Dotenv.load(".dockistrano")
 ENV["DOCKISTRANO_ENVIRONMENT"] ||= "default"
 ENV["DOCKER_HOST_IP"] ||= "127.0.0.1"
-ENV["DOCKER_BINARY"] ||= begin
-  if RUBY_PLATFORM =~ /darwin|mac os/
-    bin_dir = File.expand_path(File.dirname(__FILE__) + "/../../bin")
-    "#{bin_dir}/docker"
-  else
-    "docker"
-  end
-end
+ENV["DOCKER_BINARY"] ||= "docker"
 
 module Dockistrano
 
