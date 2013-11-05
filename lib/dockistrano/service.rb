@@ -292,7 +292,13 @@ module Dockistrano
     end
 
     def ports
-      (config["ports"] || {}).collect { |k,v| "127.0.0.1:#{k}:#{v}" }
+      (config["ports"] || {}).collect { |k,v|
+        if k.to_s.include?(":")
+          "#{k}:#{v}"
+        else
+          "172.17.42.1:#{k}:#{v}"
+        end
+      }
     end
 
     def attach(name=nil)
