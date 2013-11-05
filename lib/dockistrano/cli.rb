@@ -182,7 +182,9 @@ module Dockistrano
       if name and current_service.backing_services[name]
         service = current_service.backing_services[name]
         command_name = nil
+      else
         service = current_service
+        command_name = name
       end
 
       if service.running?
