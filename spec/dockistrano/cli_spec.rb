@@ -187,6 +187,7 @@ describe Dockistrano::Cli do
 
     it "stops the container with the id" do
       expect(Dockistrano::Docker).to receive(:stop).with("123456789")
+      expect(Dockistrano::Docker).to receive(:remove_container).with("123456789")
       expect(output).to include("Stopped")
     end
   end

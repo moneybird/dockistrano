@@ -138,6 +138,7 @@ module Dockistrano
     def stop(id=nil)
       if id
         Docker.stop(id)
+        Docker.remove_container(id)
         say_status("Stopped", id, :green)
       else
         current_service.stop
