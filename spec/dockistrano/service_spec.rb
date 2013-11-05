@@ -495,7 +495,7 @@ describe Dockistrano::Service do
   context "#ports" do
     it "returns a string representation of the port mappings" do
       subject.config = { "ports" => { "1234" => "5678" } }
-      expect(subject.ports).to eq(["127.0.0.1:1234:5678"])
+      expect(subject.ports).to eq(["172.17.42.1:1234:5678"])
     end
 
     it "returns the ip address included in the configuration" do
