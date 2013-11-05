@@ -189,6 +189,11 @@ module Dockistrano
       end
     end
 
+    desc "version", "Prints version information"
+    def version
+      say "Dockistrano version: #{Dockistrano::VERSION}"
+    end
+
     def method_missing(*args)
       command = args[0]
       if command and current_service.config["aliases"] and current_service.config["aliases"][command.to_s]
