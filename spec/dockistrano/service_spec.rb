@@ -159,18 +159,25 @@ describe Dockistrano::Service do
 
   context "#stop" do
     before do
-      allow(Dockistrano::Docker).to receive(:stop_all_containers_from_image)
+      allow(Dockistrano::Docker).to receive(:stop)
       allow(Dockistrano::Docker).to receive(:remove_container)
+      allow(subject).to receive(:additional_commands).and_return({ "worker" => "sidekiq" })
       allow(subject).to receive(:update_hipache)
     end
 
     it "stops the container" do
-      expect(Dockistrano::Docker).to receive(:stop_all_containers_from_image).with(subject.full_image_name)
+      expect(Dockistrano::Docker).to receive(:stop).with(subject.image_name)
       subject.stop
     end
 
     it "removes the container from Docker" do
       expect(Dockistrano::Docker).to receive(:remove_container).with(subject.image_name)
+      subject.stop
+    end
+
+    it "stops containers running additional commands" do
+      expect(Dockistrano::Docker).to receive(:stop).with("#{subject.image_name}_worker")
+      expect(Dockistrano::Docker).to receive(:remove_container).with("#{subject.image_name}_worker")
       subject.stop
     end
 
@@ -284,7 +291,7 @@ describe Dockistrano::Service do
 
     it "starts additional container when additional commands are configured" do
       allow(subject).to receive(:additional_commands).and_return({ "worker" => "sidekiq start" })
-      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name, link: links, e: environment, v: volumes, p: ports, d: true, command: "sidekiq start")
+      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name, name: "#{subject.image_name}_worker", link: links, e: environment, v: volumes, d: true, command: "sidekiq start")
       subject.start
     end
 

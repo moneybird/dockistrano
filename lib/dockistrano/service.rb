@@ -116,8 +116,12 @@ module Dockistrano
     # Stops the container of the current service
     def stop
       update_hipache(false)
-      Docker.stop_all_containers_from_image(full_image_name)
+      Docker.stop(image_name)
       Docker.remove_container(image_name)
+      additional_commands.each do |name, _|
+        Docker.stop("#{image_name}_#{name}")
+        Docker.remove_container("#{image_name}_#{name}")
+      end
     end
 
     # Returns if this service is running
@@ -163,7 +167,7 @@ module Dockistrano
 
       if additional_commands.any?
         additional_commands.each do |name, command|
-          Docker.run(full_image_name, link: link_backing_services, e: environment, v: volumes, p: ports, d: true, command: command)
+          Docker.run(full_image_name, name: "#{image_name}_#{name}", link: link_backing_services, e: environment, v: volumes, d: true, command: command)
         end
       end
 
