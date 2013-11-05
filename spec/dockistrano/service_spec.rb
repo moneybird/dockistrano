@@ -311,9 +311,8 @@ describe Dockistrano::Service do
       allow(subject).to receive(:full_image_name_with_fallback).and_return("image:develop")
       allow(subject).to receive(:environment_variables).and_return(environment = double)
       allow(subject).to receive(:volumes).and_return(volumes = double)
-      allow(subject).to receive(:ports).and_return(ports = double)
       allow(subject).to receive(:link_backing_services).and_return(link = double)
-      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name_with_fallback, link: link, e: environment, v: volumes, p: ports, command: "foobar")
+      expect(Dockistrano::Docker).to receive(:run).with(subject.full_image_name_with_fallback, link: link, e: environment, v: volumes, command: "foobar")
       subject.run("foobar")
     end
   end
@@ -323,10 +322,9 @@ describe Dockistrano::Service do
       allow(subject).to receive(:full_image_name_with_fallback).and_return("image:develop")
       allow(subject).to receive(:environment_variables).and_return(environment = double)
       allow(subject).to receive(:volumes).and_return(volumes = double)
-      allow(subject).to receive(:ports).and_return(ports = double)
       allow(subject).to receive(:link_backing_services).and_return(link = double)
       expect(subject).to receive(:create_data_directories)
-      expect(Dockistrano::Docker).to receive(:exec).with(subject.full_image_name_with_fallback, link: link, e: environment, v: volumes, p: ports, command: "foobar")
+      expect(Dockistrano::Docker).to receive(:exec).with(subject.full_image_name_with_fallback, link: link, e: environment, v: volumes, command: "foobar")
       subject.exec("foobar")
     end
   end
@@ -336,10 +334,9 @@ describe Dockistrano::Service do
       allow(subject).to receive(:full_image_name_with_fallback).and_return("image:develop")
       allow(subject).to receive(:environment_variables).and_return(environment = double)
       allow(subject).to receive(:volumes).and_return(volumes = double)
-      allow(subject).to receive(:ports).and_return(ports = double)
       allow(subject).to receive(:link_backing_services).and_return(link = double)
       expect(subject).to receive(:create_data_directories)
-      expect(Dockistrano::Docker).to receive(:console).with(subject.full_image_name_with_fallback, link: link, e: environment, v: volumes, p: ports, command: "foobar")
+      expect(Dockistrano::Docker).to receive(:console).with(subject.full_image_name_with_fallback, link: link, e: environment, v: volumes, command: "foobar")
       subject.console("foobar")
     end
   end

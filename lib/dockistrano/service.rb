@@ -177,19 +177,19 @@ module Dockistrano
 
     # Runs a command in this container
     def run(command, options={})
-      Docker.run(full_image_name_with_fallback, link: link_backing_services, command: command, e: environment_variables, v: volumes, p: ports)
+      Docker.run(full_image_name_with_fallback, link: link_backing_services, command: command, e: environment_variables, v: volumes)
     end
 
     # Executes a command in this container
     def exec(command, options={})
       create_data_directories
-      Docker.exec(full_image_name_with_fallback, link: link_backing_services, command: command, e: environment_variables, v: volumes, p: ports)
+      Docker.exec(full_image_name_with_fallback, link: link_backing_services, command: command, e: environment_variables, v: volumes)
     end
 
     # Starts a console in the docker container
     def console(command, options={})
       create_data_directories
-      Docker.console(full_image_name_with_fallback, link: link_backing_services, command: command, e: environment_variables, v: volumes, p: ports)
+      Docker.console(full_image_name_with_fallback, link: link_backing_services, command: command, e: environment_variables, v: volumes)
     end
 
     # Lists all backing services for this service
