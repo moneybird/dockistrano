@@ -420,8 +420,8 @@ describe Dockistrano::Service do
     end
 
     it "includes a source mount when configured" do
-      allow(subject).to receive(:mount_src).and_return("/home/app")
-      expect(subject.volumes).to include("/dockistrano/image/src:/home/app")
+      allow(subject).to receive(:mount_src).and_return({ "/home/vagrant/src/app2" => "/home/app" })
+      expect(subject.volumes).to include("/home/vagrant/src/app2:/home/app")
     end
   end
 

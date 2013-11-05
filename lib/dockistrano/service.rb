@@ -244,7 +244,9 @@ module Dockistrano
       [].tap do |volumes|
         volumes << "/dockistrano/#{image_name.gsub("-", "_")}/data:/dockistrano/data"
         if mount_src and !mount_src.empty?
-          volumes << "/dockistrano/#{image_name.gsub("-", "_")}/src:#{mount_src}"
+          mount_src.each do |host_src, container_src|
+            volumes << "#{host_src}:#{container_src}"
+          end
         end
       end
     end
