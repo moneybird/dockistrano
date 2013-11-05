@@ -497,17 +497,25 @@ describe Dockistrano::Service do
 
   context "#attach" do
     it "attaches to the output of the container" do
-      expect(Dockistrano::Docker).to receive(:attach).with("123456")
-      expect(Dockistrano::Docker).to receive(:running_container_id).with(subject.full_image_name).and_return("123456")
+      expect(Dockistrano::Docker).to receive(:attach).with(subject.image_name)
       subject.attach
+    end
+
+    it "attaches to the output of the container when additional command given" do
+      expect(Dockistrano::Docker).to receive(:attach).with("#{subject.image_name}_worker")
+      subject.attach("worker")
     end
   end
 
   context "#logs" do
     it "returns the logs of the last run of the container" do
-      expect(Dockistrano::Docker).to receive(:logs).with("123456")
-      expect(Dockistrano::Docker).to receive(:last_run_container_id).with(subject.full_image_name).and_return("123456")
+      expect(Dockistrano::Docker).to receive(:logs).with(subject.image_name)
       subject.logs
+    end
+
+    it "returns the logs of the last run of the container when additional command given" do
+      expect(Dockistrano::Docker).to receive(:logs).with("#{subject.image_name}_worker")
+      subject.logs("worker")
     end
   end
 

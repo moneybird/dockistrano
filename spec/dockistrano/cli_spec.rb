@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Dockistrano::Cli do
 
   let(:service) { double(registry: "registry.provider.tld", image_name: "application", tag: "develop", volumes: [], backing_services: { "postgresql" => backing_service }, environment_variables: {}, newer_version_available?: false, stop: nil) }
-  let(:backing_service) { double(full_image_name: "registry.provider.tld/postgresql:develop", image_name: "postgresql", running?: false, newer_version_available?: false, start: nil, stop: nil) }
+  let(:backing_service) { double(:backing_service, full_image_name: "registry.provider.tld/postgresql:develop", image_name: "postgresql", running?: false, newer_version_available?: false, start: nil, stop: nil) }
   let(:hipache) { double }
   let(:output) { capture(:stdout) { described_class.start(command) } }
 
@@ -259,30 +259,46 @@ describe Dockistrano::Cli do
 
     it "attaches to the containers output when the container is running" do
       expect(service).to receive(:running?).and_return(true)
-      expect(service).to receive(:attach)
+      expect(service).to receive(:attach).with(nil)
       expect(output).to include("Container application running, attaching to output")
     end
 
     it "prints the logs of the last run" do
       expect(service).to receive(:running?).and_return(false)
-      expect(service).to receive(:logs)
+      expect(service).to receive(:logs).with(nil)
       expect(output).to include("Container application stopped, printing logs of last run")
     end
   end
 
-  context "doc logs NAME" do
+  context "doc logs BACKING_SERVICE" do
     let(:command) { ["logs", "postgresql"] }
 
     it "attaches to the containers output when the container is running" do
       expect(backing_service).to receive(:running?).and_return(true)
-      expect(backing_service).to receive(:attach)
+      expect(backing_service).to receive(:attach).with(nil)
       expect(output).to include("Container postgresql running, attaching to output")
     end
 
     it "prints the logs of the last run" do
       expect(backing_service).to receive(:running?).and_return(false)
-      expect(backing_service).to receive(:logs)
+      expect(backing_service).to receive(:logs).with(nil)
       expect(output).to include("Container postgresql stopped, printing logs of last run")
+    end
+  end
+
+  context "doc logs ADDITIONAL_COMMAND" do
+    let(:command) { ["logs", "worker"] }
+
+    it "attaches to the containers output when the container is running" do
+      expect(service).to receive(:running?).and_return(true)
+      expect(service).to receive(:attach).with("worker")
+      expect(output).to include("Container application running, attaching to output")
+    end
+
+    it "prints the logs of the last run" do
+      expect(service).to receive(:running?).and_return(false)
+      expect(service).to receive(:logs).with("worker")
+      expect(output).to include("Container application stopped, printing logs of last run")
     end
   end
 

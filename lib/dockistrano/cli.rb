@@ -179,13 +179,18 @@ module Dockistrano
 
     desc "logs [NAME]", "Prints the logs for the service"
     def logs(name=nil)
-      service = name ? current_service.backing_services[name] : current_service
+      if name and current_service.backing_services[name]
+        service = current_service.backing_services[name]
+        command_name = nil
+        service = current_service
+      end
+
       if service.running?
         say "Container #{service.image_name} running, attaching to output", :blue
-        service.attach
+        service.attach(command_name)
       else
         say "Container #{service.image_name} stopped, printing logs of last run", :blue
-        service.logs
+        service.logs(command_name)
       end
     end
 

@@ -291,12 +291,20 @@ module Dockistrano
       (config["ports"] || {}).collect { |k,v| "127.0.0.1:#{k}:#{v}" }
     end
 
-    def attach
-      Docker.attach(Docker.running_container_id(full_image_name))
+    def attach(name=nil)
+      if name
+        Docker.attach("#{image_name}_#{name}")
+      else
+        Docker.attach(image_name)
+      end
     end
 
-    def logs
-      Docker.logs(Docker.last_run_container_id(full_image_name))
+    def logs(name=nil)
+      if name
+        Docker.logs("#{image_name}_#{name}")
+      else
+        Docker.logs(image_name)
+      end
     end
 
     def create_data_directories
