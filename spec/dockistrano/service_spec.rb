@@ -538,6 +538,7 @@ describe Dockistrano::Service do
         v: volumes,
         e: environment_variables,
         u: "root",
+        rm: true,
         command: "/bin/bash -c 'mkdir -p /dockistrano/data/logs; chown app:app /dockistrano/data/logs'"
       )
 

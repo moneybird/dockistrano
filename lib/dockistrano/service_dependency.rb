@@ -76,7 +76,7 @@ module Dockistrano
     end
 
     def load_from_image
-      raw_config = Docker.run(backing_service.full_image_name, command: "cat /dockistrano.yml")
+      raw_config = Docker.run(backing_service.full_image_name, command: "cat /dockistrano.yml", rm: true)
       if raw_config.empty? or raw_config.include?("No such file or directory")
         if raw_config.include?("failed to mount")
           raise HostDirectoriesMissing

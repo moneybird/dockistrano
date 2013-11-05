@@ -319,7 +319,7 @@ module Dockistrano
         command = "mkdir -p #{data_directories.collect { |dir| "/dockistrano/data/#{dir}"}.join(" ") }; "
         command += "chown #{image_user}:#{image_user} #{data_directories.collect { |dir| "/dockistrano/data/#{dir}"}.join(" ") }"
         bash_command = "/bin/bash -c '#{command}'"
-        Docker.run(full_image_name_with_fallback, command: bash_command, v: volumes, e: environment_variables, u: "root")
+        Docker.run(full_image_name_with_fallback, command: bash_command, v: volumes, e: environment_variables, u: "root", rm: true)
       end
     end
 

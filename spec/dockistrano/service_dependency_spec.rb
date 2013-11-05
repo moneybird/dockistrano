@@ -98,7 +98,7 @@ describe Dockistrano::ServiceDependency do
     end
 
     it "reads the configuration from the image and caches the configuration" do
-      expect(Dockistrano::Docker).to receive(:run).with(backing_service.full_image_name, command: "cat /dockistrano.yml").and_return(raw_config = "---\ndefault:\n\tconfiguration: value")
+      expect(Dockistrano::Docker).to receive(:run).with(backing_service.full_image_name, command: "cat /dockistrano.yml", rm: true).and_return(raw_config = "---\ndefault:\n\tconfiguration: value")
 
       expect(FileUtils).to receive(:mkdir_p).with("tmp/configuration_cache")
       expect(File).to receive(:open).with("tmp/configuration_cache/#{backing_service.image_id}", "w+").and_return(file = double)
@@ -111,17 +111,17 @@ describe Dockistrano::ServiceDependency do
     end
 
     it "raises an error when host directories are missing" do
-      expect(Dockistrano::Docker).to receive(:run).with(backing_service.full_image_name, command: "cat /dockistrano.yml").and_return("No such file or directory: failed to mount")
+      expect(Dockistrano::Docker).to receive(:run).with(backing_service.full_image_name, command: "cat /dockistrano.yml", rm: true).and_return("No such file or directory: failed to mount")
       expect { subject.load_from_image }.to raise_error(Dockistrano::ServiceDependency::HostDirectoriesMissing)
     end
 
     it "raises an error when the configuration is not found" do
-      expect(Dockistrano::Docker).to receive(:run).with(backing_service.full_image_name, command: "cat /dockistrano.yml").and_return("No such file or directory: dockistrano.yml")
+      expect(Dockistrano::Docker).to receive(:run).with(backing_service.full_image_name, command: "cat /dockistrano.yml", rm: true).and_return("No such file or directory: dockistrano.yml")
       expect { subject.load_from_image }.to raise_error(Dockistrano::ServiceDependency::ContainerConfigurationMissing)
     end
 
     it "raises an error when the configuration is empty" do
-      expect(Dockistrano::Docker).to receive(:run).with(backing_service.full_image_name, command: "cat /dockistrano.yml").and_return("")
+      expect(Dockistrano::Docker).to receive(:run).with(backing_service.full_image_name, command: "cat /dockistrano.yml", rm: true).and_return("")
       expect { subject.load_from_image }.to raise_error(Dockistrano::ServiceDependency::ContainerConfigurationMissing)
     end
   end
