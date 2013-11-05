@@ -7,3 +7,8 @@ guard :rspec do
   watch('spec/spec_helper.rb')  { "spec" }
 end
 
+guard :shell do
+  watch %r{^lib\/(.+)\.rb$} do |m|
+    `rake install`
+  end
+end
