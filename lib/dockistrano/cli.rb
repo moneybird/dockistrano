@@ -49,10 +49,12 @@ module Dockistrano
       current_service.environment_variables.each do |key, value|
         say "  #{key}=#{value}"
       end
-      say ""
-      say "Hipache", :blue
-      Hipache.new(ENV["DOCKER_HOST_IP"]).status.each do |host, ips|
-        say "  #{host}: #{ips.join(", ")}"
+      if current_service.backing_services["hipache"] and redis_url = current_service.backing_services["hipache"].ip_address
+        say ""
+        say "Hipache", :blue
+        Hipache.new("redis://#{redis_url}:6379").status.each do |host, ips|
+          say "  #{host}: #{ips.join(", ")}"
+        end
       end
       say ""
     end
