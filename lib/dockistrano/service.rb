@@ -260,12 +260,16 @@ module Dockistrano
     end
 
     # Returns a list of available tags in the registry for the image
-    def available_tags
+    def available_tags_in_registry
       @available_tags ||= begin
         registry_instance.tags_for_image(image_name)
       rescue Dockistrano::Registry::RepositoryNotFoundInRegistry
         []
       end
+    end
+
+    def available_tags_local
+      @available_tags_local ||= Docker.tags_for_image("#{registry}/#{image_name}")
     end
 
     class NoTagFoundForImage < StandardError
@@ -277,13 +281,13 @@ module Dockistrano
 
       begin
         tag_suggestion = fallback_tags.shift
-        final_tag = tag_suggestion if available_tags.include?(tag_suggestion)
+        final_tag = tag_suggestion if available_tags_local.include?(tag_suggestion)
       end while !final_tag and fallback_tags.any?
 
       if final_tag
         final_tag
       else
-        raise NoTagFoundForImage.new("No tag found for image #{image_name}, wanted tag #{tag}, available tags: #{available_tags}")
+        raise NoTagFoundForImage.new("No tag found for image #{image_name}, wanted tag #{tag}, available tags: #{available_tags_local}")
       end
     end
 

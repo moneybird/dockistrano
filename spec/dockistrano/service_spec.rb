@@ -434,48 +434,55 @@ describe Dockistrano::Service do
 
   context "#directories_required_on_host"
 
-  context "#available_tags" do
+  context "#available_tags_in_registry" do
     it "returns a list of available tags for the current service" do
       expect(subject).to receive(:registry_instance).and_return(registry = double)
       expect(registry).to receive(:tags_for_image).with(subject.image_name).and_return(["develop", "master"])
-      expect(subject.available_tags).to eq(["develop", "master"])
+      expect(subject.available_tags_in_registry).to eq(["develop", "master"])
     end
 
     it "returns an empty list when the repository is not found in the registry" do
       expect(subject).to receive(:registry_instance).and_return(registry = double)
       expect(registry).to receive(:tags_for_image).with(subject.image_name).and_raise(Dockistrano::Registry::RepositoryNotFoundInRegistry)
-      expect(subject.available_tags).to eq([])
+      expect(subject.available_tags_in_registry).to eq([])
+    end
+  end
+
+  context "#available_tags_local" do
+    it "returns a list of available tags for the current service" do
+      expect(Dockistrano::Docker).to receive(:tags_for_image).with("#{subject.registry}/#{subject.image_name}").and_return(["develop", "master"])
+      expect(subject.available_tags_local).to eq(["develop", "master"])
     end
   end
 
   context "#tag_with_fallback" do
     it "uses the feature branch when available" do
       allow(subject).to receive(:tag).and_return("feature_branch")
-      allow(subject).to receive(:available_tags).and_return(["develop", "master", "feature_branch"])
+      allow(subject).to receive(:available_tags_local).and_return(["develop", "master", "feature_branch"])
       expect(subject.tag_with_fallback).to eq("feature_branch")
     end
 
     it "uses the develop branch when available" do
       allow(subject).to receive(:tag).and_return("feature_branch")
-      allow(subject).to receive(:available_tags).and_return(["develop", "master", "latest"])
+      allow(subject).to receive(:available_tags_local).and_return(["develop", "master", "latest"])
       expect(subject.tag_with_fallback).to eq("develop")
     end
 
     it "uses the master branch when available" do
       allow(subject).to receive(:tag).and_return("feature_branch")
-      allow(subject).to receive(:available_tags).and_return(["master", "latest"])
+      allow(subject).to receive(:available_tags_local).and_return(["master", "latest"])
       expect(subject.tag_with_fallback).to eq("master")
     end
 
     it "uses the latest branch when available" do
       allow(subject).to receive(:tag).and_return("feature_branch")
-      allow(subject).to receive(:available_tags).and_return(["latest"])
+      allow(subject).to receive(:available_tags_local).and_return(["latest"])
       expect(subject.tag_with_fallback).to eq("latest")
     end
 
     it "raises an error when no tags are found" do
       allow(subject).to receive(:tag).and_return("feature_branch")
-      allow(subject).to receive(:available_tags).and_return(["foobar", "test"])
+      allow(subject).to receive(:available_tags_local).and_return(["foobar", "test"])
       expect { subject.tag_with_fallback }.to raise_error(Dockistrano::Service::NoTagFoundForImage)
     end
   end
