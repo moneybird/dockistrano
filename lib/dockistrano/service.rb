@@ -37,7 +37,7 @@ module Dockistrano
     def config=(config)
       @config = config
       @dependencies = config["dependencies"] || {}
-      @image_name ||= config["image_name"] || Git.repository_name
+      @image_name ||= (config["image_name"] || Git.repository_name).gsub(/\-/, "_").gsub(/\./, "")
       @tag ||= config["tag"] || Git.branch
       @registry ||= config["registry"]
       @host ||= config["host"]
