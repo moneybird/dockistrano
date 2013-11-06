@@ -38,7 +38,11 @@ module Dockistrano
       say ""
       say "Dependencies", :blue
       current_service.backing_services.each do |name, service|
-        say "  #{service.full_image_name}"
+        if service.running?
+          say_status "online", "#{service.full_image_name}", :green
+        else
+          say_status "offline", "#{service.full_image_name}", :red
+        end
       end
       say ""
       say "Environment", :blue
