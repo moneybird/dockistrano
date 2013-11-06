@@ -17,8 +17,7 @@ module Dockistrano
     desc "setup", "Sets up a host for starting the application"
     method_option "environment", aliases: "-e", default: ENV["DOCKISTRANO_ENVIRONMENT"], type: :string, desc: "Environment to start the container in"
     def setup
-      say "Please execute the following command on the host to setup", :green
-      say "\tmkdir -p #{current_service.directories_required_on_host.join(" ")}"
+      `mkdir -p #{current_service.directories_required_on_host.join(" ")}`
     end
 
     desc "status", "Status of the application"
