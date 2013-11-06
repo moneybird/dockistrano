@@ -147,13 +147,13 @@ module Dockistrano
     end
 
     def update_hipache(server_up=true)
-      if !host.nil?
-        hipache = Hipache.new(ENV['DOCKER_HOST_IP'])
+      if !host.nil? and (redis_url = backing_services["hipache"].ip_address)
+        hipache = Hipache.new("redis://#{redis_url}:6379")
         host.each do |hostname, port|
           if server_up
-            hipache.register(image_name, hostname, ip_address_for_port(port), port)
+            hipache.register(image_name, hostname, ip_address, port)
           else
-            hipache.unregister(image_name, hostname, ip_address_for_port(port), port)
+            hipache.unregister(image_name, hostname, ip_address, port)
           end
         end
       end
@@ -287,18 +287,12 @@ module Dockistrano
       end
     end
 
-    def ip_address_for_port(port)
-      container_settings["NetworkSettings"]["Ports"]["#{port}/tcp"].first["HostIp"] if running?
+    def ip_address
+      container_settings["NetworkSettings"]["IPAddress"] if running?
     end
 
     def ports
-      (config["ports"] || {}).collect { |k,v|
-        if k.to_s.include?(":")
-          "#{k}:#{v}"
-        else
-          "172.17.42.1:#{k}:#{v}"
-        end
-      }
+      (config["ports"] || [])
     end
 
     def attach(name=nil)

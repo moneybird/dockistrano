@@ -242,21 +242,24 @@ describe Dockistrano::Service do
 
   context "#update_hipache" do
     let(:hipache) { double }
+    let(:hipache_service) { double }
 
     before do
       allow(Dockistrano::Hipache).to receive(:new).and_return(hipache)
+      allow(subject).to receive(:backing_services).and_return({ "hipache" => hipache_service })
+      allow(hipache_service).to receive(:ip_address).and_return("172.168.1.1")
     end
 
     it "registers the host in Hipache when the server is up" do
       allow(subject).to receive(:host).and_return({ "hostname.dev" => "8000" })
-      expect(subject).to receive(:ip_address_for_port).with("8000").and_return("33.33.33.33")
+      expect(subject).to receive(:ip_address).and_return("33.33.33.33")
       expect(hipache).to receive(:register).with(subject.image_name, "hostname.dev", "33.33.33.33", "8000")
       subject.update_hipache(true)
     end
 
     it "unregisters the host in Hipache when the server is down" do
       allow(subject).to receive(:host).and_return({ "hostname.dev" => "8000" })
-      expect(subject).to receive(:ip_address_for_port).with("8000").and_return("33.33.33.33")
+      expect(subject).to receive(:ip_address).and_return("33.33.33.33")
       expect(hipache).to receive(:unregister).with(subject.image_name, "hostname.dev", "33.33.33.33", "8000")
       subject.update_hipache(false)
     end
@@ -477,29 +480,26 @@ describe Dockistrano::Service do
     end
   end
 
-  context "#ip_address_for_port" do
-    it "returns the ip address at which the port is listening" do
+  context "#ip_address" do
+    it "returns the ip address of the running container" do
       allow(subject).to receive(:running?).and_return(true)
-      allow(subject).to receive(:container_settings).and_return({ "NetworkSettings" => { "Ports" => {
-        "3000/tcp" => [
-          {
-            "HostIp" => "127.0.0.1",
-            "HostPort" => "3000"
-          }
-        ]
-      }}})
-      expect(subject.ip_address_for_port(3000)).to eq("127.0.0.1")
+      allow(subject).to receive(:container_settings).and_return({
+        "NetworkSettings" => {
+          "IPAddress" => "172.168.1.1"
+        }
+      })
+      expect(subject.ip_address).to eq("172.168.1.1")
     end
   end
 
   context "#ports" do
     it "returns a string representation of the port mappings" do
-      subject.config = { "ports" => { "1234" => "5678" } }
-      expect(subject.ports).to eq(["172.17.42.1:1234:5678"])
+      subject.config = { "ports" => [ "1234:5678" ] }
+      expect(subject.ports).to eq(["1234:5678"])
     end
 
     it "returns the ip address included in the configuration" do
-      subject.config = { "ports" => { "33.33.33.10:1234" => "5678" } }
+      subject.config = { "ports" => [ "33.33.33.10:1234:5678" ] }
       expect(subject.ports).to eq(["33.33.33.10:1234:5678"])
     end
   end

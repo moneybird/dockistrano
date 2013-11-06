@@ -4,8 +4,8 @@ module Dockistrano
 
   class Hipache
 
-    def initialize(hipache_ip)
-      @hipache_ip = hipache_ip
+    def initialize(hipache_url)
+      @hipache_url = hipache_url
     end
 
     def online?
@@ -55,7 +55,7 @@ module Dockistrano
     private
 
     def redis
-      @redis ||= Redis.new(host: @hipache_ip, port: 16379)
+      @redis ||= Redis.new(url: @hipache_url)
     end
 
   end

@@ -5,6 +5,7 @@ describe Dockistrano::Cli do
   let(:service) { double(registry: "registry.provider.tld", image_name: "application", tag: "develop", volumes: [], backing_services: { "postgresql" => backing_service }, environment_variables: {}, newer_version_available?: false, stop: nil) }
   let(:backing_service) { double(:backing_service, full_image_name: "registry.provider.tld/postgresql:develop", image_name: "postgresql", running?: false, newer_version_available?: false, start: nil, stop: nil) }
   let(:hipache) { double }
+  let(:hipache_service) { double(running?: true, full_image_name: "hipache") }
   let(:output) { capture(:stdout) { described_class.start(command) } }
 
   before do
@@ -48,7 +49,9 @@ describe Dockistrano::Cli do
     end
 
     it "lists the Hipache configuration" do
-      allow(Dockistrano::Hipache).to receive(:new).with("127.0.0.1").and_return(hipache)
+      allow(service).to receive(:backing_services).and_return({ "hipache" => hipache_service })
+      allow(hipache_service).to receive(:ip_address).and_return("127.0.0.1")
+      allow(Dockistrano::Hipache).to receive(:new).with("redis://127.0.0.1:6379").and_return(hipache)
       allow(hipache).to receive(:status).and_return({ "somehostname.dev" => ["127.0.0.1:1000", "23.45.56.75:1234"] })
       expect(output).to include("somehostname.dev: 127.0.0.1:1000, 23.45.56.75:1234")
     end
