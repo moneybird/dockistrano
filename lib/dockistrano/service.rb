@@ -99,7 +99,7 @@ module Dockistrano
       unless test_command.nil? or test_command.empty?
         ensure_backing_services
         create_data_directories
-        Docker.exec(full_image_name, command: test_command, e: checked_environment_variables, v: volumes)
+        Docker.exec(full_image_name, command: test_command, link: link_backing_services, e: checked_environment_variables, v: volumes, rm: true)
       else
         true
       end

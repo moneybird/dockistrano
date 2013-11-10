@@ -115,14 +115,16 @@ describe Dockistrano::Service do
       allow(subject).to receive(:test_command).and_return("rake test")
       allow(subject).to receive(:checked_environment_variables).and_return(environment_variables)
       allow(subject).to receive(:volumes).and_return(volumes)
+      allow(subject).to receive(:link_backing_services).and_return(links)
     end
 
     let(:environment_variables) { double }
     let(:volumes) { double }
+    let(:links) { double }
 
     it "tests the container" do
       expect(subject).to receive(:ensure_backing_services)
-      expect(Dockistrano::Docker).to receive(:exec).with("full_image_name", command: "rake test", e: environment_variables, v: volumes).and_return(true)
+      expect(Dockistrano::Docker).to receive(:exec).with("full_image_name", command: "rake test", e: environment_variables, v: volumes, rm: true, link: links).and_return(true)
       expect(subject.test).to be_true
     end
 
