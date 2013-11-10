@@ -8,7 +8,7 @@ module Dockistrano
     attr_reader :dependencies, :config, :image_name, :registry,
       :tag, :test_command, :provides_env, :backing_service_env,
       :data_directories, :environment, :host, :additional_commands,
-      :mount_src
+      :mount_src, :setup_command, :reset_command
 
     attr_writer :tag
 
@@ -42,6 +42,8 @@ module Dockistrano
       @registry ||= config["registry"]
       @host ||= config["host"]
       @test_command = config["test_command"]
+      @setup_command = config["setup_command"]
+      @reset_command = config["reset_command"]
       @mount_src = config["mount_src"]
       @provides_env = config["provides_env"] || {}
       @additional_commands = config["additional_commands"] || {}
@@ -256,7 +258,7 @@ module Dockistrano
     end
 
     def directories_required_on_host
-      (volumes.collect { |v| v.split(":").first } + backing_services.values.map(&:directories_required_on_host)).flatten
+      volumes.collect { |v| v.split(":").first }
     end
 
     # Returns a list of available tags in the registry for the image
@@ -330,6 +332,24 @@ module Dockistrano
     def newer_version_available?
       registry_image_id = registry_instance.latest_id_for_image(image_name, tag_with_fallback)
       registry_image_id and image_id != registry_image_id
+    end
+
+    def setup
+      CommandLine.command_with_result("mkdir -p #{directories_required_on_host}")
+      if setup_command
+        ensure_backing_services
+        create_data_directories
+        Docker.exec(full_image_name, command: setup_command, link: link_backing_services, e: checked_environment_variables, v: volumes, rm: true)
+      end
+    end
+
+    def reset
+      CommandLine.command_with_result("mkdir -p #{directories_required_on_host}")
+      if reset_command
+        ensure_backing_services
+        create_data_directories
+        Docker.exec(full_image_name, command: reset_command, link: link_backing_services, e: checked_environment_variables, v: volumes, rm: true)
+      end
     end
 
     private

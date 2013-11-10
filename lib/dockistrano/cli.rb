@@ -17,7 +17,23 @@ module Dockistrano
     desc "setup", "Sets up a host for starting the application"
     method_option "environment", aliases: "-e", default: ENV["DOCKISTRANO_ENVIRONMENT"], type: :string, desc: "Environment to start the container in"
     def setup
-      `mkdir -p #{current_service.directories_required_on_host.join(" ")}`
+      current_service.backing_services.each do |name, service|
+        service.setup
+        say_status "Done", "Setting up #{service.image_name}", :green
+      end
+      current_service.setup
+      say_status "Done", "Setting up #{current_service.image_name}", :green
+    end
+
+    desc "reset", "Resets all information from the environment"
+    method_option "environment", aliases: "-e", default: ENV["DOCKISTRANO_ENVIRONMENT"], type: :string, desc: "Environment to start the container in"
+    def reset
+      current_service.backing_services.each do |name, service|
+        service.reset
+        say_status "Done", "Reset #{service.image_name}", :green
+      end
+      current_service.reset
+      say_status "Done", "Reset #{current_service.image_name}", :green
     end
 
     desc "status", "Status of the application"

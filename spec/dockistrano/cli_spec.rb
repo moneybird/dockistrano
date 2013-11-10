@@ -316,4 +316,42 @@ describe Dockistrano::Cli do
     end
   end
 
+  context "doc setup" do
+    let(:command) { ["setup"] }
+
+    before do
+      allow(backing_service).to receive(:setup)
+      allow(service).to receive(:setup)
+    end
+
+    it "setups all backing services" do
+      expect(backing_service).to receive(:setup)
+      expect(output).to include("Setting up postgresql")
+    end
+
+    it "setups the current service" do
+      expect(service).to receive(:setup)
+      expect(output).to include("Setting up #{service.image_name}")
+    end
+  end
+
+  context "doc reset" do
+    let(:command) { ["reset"] }
+
+    before do
+      allow(backing_service).to receive(:reset)
+      allow(service).to receive(:reset)
+    end
+
+    it "resets all backing services" do
+      expect(backing_service).to receive(:reset)
+      expect(output).to include("Reset postgresql")
+    end
+
+    it "resets the current service" do
+      expect(service).to receive(:reset)
+      expect(output).to include("Reset #{service.image_name}")
+    end
+  end
+
 end

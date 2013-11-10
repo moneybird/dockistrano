@@ -583,4 +583,60 @@ describe Dockistrano::Service do
     end
   end
 
+  context "#setup" do
+    before do
+      allow(subject).to receive(:full_image_name).and_return("full_image_name")
+      allow(subject).to receive(:setup_command).and_return("bin/setup")
+      allow(subject).to receive(:checked_environment_variables).and_return(environment_variables)
+      allow(subject).to receive(:volumes).and_return(volumes)
+      allow(subject).to receive(:link_backing_services).and_return(links)
+      allow(subject).to receive(:directories_required_on_host).and_return("/dockistrano/data")
+      allow(Dockistrano::CommandLine).to receive(:command_with_result)
+      allow(Dockistrano::Docker).to receive(:exec)
+    end
+
+    let(:environment_variables) { double }
+    let(:volumes) { double }
+    let(:links) { double }
+
+    it "creates required directories on the host" do
+      expect(Dockistrano::CommandLine).to receive(:command_with_result).with("mkdir -p /dockistrano/data")
+      subject.setup
+    end
+
+    it "setups the container" do
+      expect(subject).to receive(:ensure_backing_services)
+      expect(Dockistrano::Docker).to receive(:exec).with("full_image_name", command: "bin/setup", e: environment_variables, v: volumes, rm: true, link: links).and_return(true)
+      expect(subject.setup).to be_true
+    end
+  end
+
+  context "#reset" do
+    before do
+      allow(subject).to receive(:full_image_name).and_return("full_image_name")
+      allow(subject).to receive(:reset_command).and_return("bin/reset")
+      allow(subject).to receive(:checked_environment_variables).and_return(environment_variables)
+      allow(subject).to receive(:volumes).and_return(volumes)
+      allow(subject).to receive(:link_backing_services).and_return(links)
+      allow(subject).to receive(:directories_required_on_host).and_return("/dockistrano/data")
+      allow(Dockistrano::CommandLine).to receive(:command_with_result)
+      allow(Dockistrano::Docker).to receive(:exec)
+    end
+
+    let(:environment_variables) { double }
+    let(:volumes) { double }
+    let(:links) { double }
+
+    it "creates required directories on the host" do
+      expect(Dockistrano::CommandLine).to receive(:command_with_result).with("mkdir -p /dockistrano/data")
+      subject.setup
+    end
+
+    it "setups the container" do
+      expect(subject).to receive(:ensure_backing_services)
+      expect(Dockistrano::Docker).to receive(:exec).with("full_image_name", command: "bin/reset", e: environment_variables, v: volumes, rm: true, link: links).and_return(true)
+      expect(subject.reset).to be_true
+    end
+  end
+
 end
