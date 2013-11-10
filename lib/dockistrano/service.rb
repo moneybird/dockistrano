@@ -128,7 +128,7 @@ module Dockistrano
 
     # Returns if this service is running
     def running?
-      Docker.running_container_id(full_image_name)
+      Docker.running?(image_name)
     end
 
     # Pulls backing services for this service
@@ -355,7 +355,7 @@ module Dockistrano
     private
 
     def container_settings
-      @container_settings ||= Docker.inspect_container(Docker.running_container_id(full_image_name))
+      @container_settings ||= Docker.inspect_container(image_name)
     end
 
     class EnvironmentVariablesMissing < StandardError

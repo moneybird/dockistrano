@@ -104,11 +104,10 @@ module Dockistrano
       Dockistrano::CommandLine.command_with_stream("#{docker_command} rm $(#{docker_command} ps -a -q)")
     end
 
-    def self.running_container_id(full_image_name)
-      request(["containers", "json"]).each do |container|
-        return container["Id"] if container["Image"] == full_image_name
-      end
-      nil
+    def self.running?(image_name)
+      request(["containers", image_name, "json"])["State"]["Running"]
+    rescue ResourceNotFound
+      false
     end
 
     # Returns the id of the last container with an error
@@ -132,8 +131,8 @@ module Dockistrano
       raise ImageNotFound.new(e.message)
     end
 
-    def self.inspect_container(id)
-      request(["containers", id, "json"])
+    def self.inspect_container(name)
+      request(["containers", name, "json"])
     end
 
     def self.stop_all_containers_from_image(full_image_name)

@@ -191,17 +191,17 @@ describe Dockistrano::Service do
 
   context "#running?" do
     before do
-      allow(subject).to receive(:full_image_name).and_return("image_name:tag")
+      allow(subject).to receive(:image_name).and_return("image_name")
     end
 
     it "returns true when the service is running" do
-      expect(Dockistrano::Docker).to receive(:running_container_id).with("image_name:tag").and_return("423c138040f1")
-      expect(subject.running?).to eq("423c138040f1")
+      expect(Dockistrano::Docker).to receive(:running?).with("image_name").and_return(true)
+      expect(subject.running?).to be_true
     end
 
     it "returns false when the service is not running" do
-      expect(Dockistrano::Docker).to receive(:running_container_id).with("image_name:tag").and_return(nil)
-      expect(subject.running?).to eq(nil)
+      expect(Dockistrano::Docker).to receive(:running?).with("image_name").and_return(false)
+      expect(subject.running?).to be_false
     end
   end
 

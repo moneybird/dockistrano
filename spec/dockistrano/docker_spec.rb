@@ -106,13 +106,13 @@ describe Dockistrano::Docker do
     end
   end
 
-  context ".running_container_id" do
-    it "returns the first id of a running container matching with the image name" do
-      stub_request(:get, "http://127.0.0.1:4243/containers/json").to_return(status: 200, body: '[{"Id":"8e319853f561ba2c22de2ec9ff2584f99d091dd20cc5b393ab874631c6993a36","Image":"registry.dev.provider.net/provider-app-2.0:develop","Command":"bin/provider webserver","Created":1382449380,"Status":"Up 24 hours","Ports":[{"PrivatePort":3000,"PublicPort":49225,"Type":"tcp"}],"SizeRw":0,"SizeRootFs":0},
-        {"Id":"107fc12c1c4b8e42091bd46e97c985d42c9e0d06506327e84f28fef585f9865a","Image":"registry.dev.provider.net/provider-app-2.0:develop","Command":"bin/provider worker","Created":1382449380,"Status":"Up 24 hours","Ports":[{"PrivatePort":3000,"PublicPort":49224,"Type":"tcp"}],"SizeRw":0,"SizeRootFs":0},
-        {"Id":"066474c539231e445c636dd6ef2879e6a3e304cead10f78bd79e385b161cbdf5","Image":"registry.dev.provider.net/hipache:develop","Command":"supervisord -n","Created":1382447352,"Status":"Up 24 hours","Ports":[{"PrivatePort":80,"PublicPort":80,"Type":"tcp"},{"PrivatePort":6379,"PublicPort":16379,"Type":"tcp"}],"SizeRw":0,"SizeRootFs":0}]')
+  context ".running?" do
+    it "returns if the container is running" do
+      stub_request(:get, "http://127.0.0.1:4243/containers/provider_app_20/json").to_return(status: 200, body: '{
+        "ID":"a2ad211eb274ca5f8db962f571b07021ab77386a747a358135b30c3231b73844","State":{"Running":true,"Pid":3749,"ExitCode":0,"StartedAt":"2013-11-10T15:04:54.127812749+01:00","FinishedAt":"0001-01-01T00:00:00Z","Ghost":false}
+      }')
 
-      expect(subject.running_container_id("registry.dev.provider.net/provider-app-2.0:develop")).to eq("8e319853f561ba2c22de2ec9ff2584f99d091dd20cc5b393ab874631c6993a36")
+      expect(subject.running?("provider_app_20")).to be_true
     end
   end
 
