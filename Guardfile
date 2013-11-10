@@ -1,3 +1,5 @@
+notification :gntp, host: "33.33.33.1"
+
 # A sample Guardfile
 # More info at https://github.com/guard/guard#readme
 
